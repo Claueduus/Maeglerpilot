@@ -77,11 +77,34 @@ export default function Leads() {
     setNyKommentar({ ...nyKommentar, [index]: "" });
   };
 
+  const eksportérCSV = () => {
+    const headers = ["Navn", "Email", "Telefon", "Status", "Bemærkninger", "Kommentarer"];
+    const rows = leads.map((lead) => [
+      lead.navn,
+      lead.email,
+      lead.telefon,
+      lead.status,
+      lead.note,
+      lead.kommentarer?.map(k => `${k.tidspunkt}: ${k.tekst}`).join(" | ") || ""
+    ]);
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map((v) => `"${v}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "leads.csv";
+    link.click();
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Leads – Kommentarlog & CRM</h2>
+      <h2 className="text-2xl font-semibold">Leads – CRM med Kommentar & Eksport</h2>
 
-      {/* Formular */}
       <div className="grid md:grid-cols-2 gap-4">
         <input
           type="text"
@@ -121,14 +144,21 @@ export default function Leads() {
         />
       </div>
 
-      <button
-        onClick={tilføjEllerOpdater}
-        className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
-      >
-        {editingIndex !== null ? "💾 Gem ændringer" : "+ Opret lead"}
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={tilføjEllerOpdater}
+          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+        >
+          {editingIndex !== null ? "💾 Gem ændringer" : "+ Opret lead"}
+        </button>
+        <button
+          onClick={eksportérCSV}
+          className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded"
+        >
+          ⬇️ Eksportér CSV
+        </button>
+      </div>
 
-      {/* Liste */}
       <div className="grid gap-4 mt-6">
         {leads.map((lead, index) => (
           <div
@@ -147,7 +177,6 @@ export default function Leads() {
               <p className="text-sm text-gray-300">📝 {lead.note}</p>
             )}
 
-            {/* Kommentarlog */}
             {lead.kommentarer?.length > 0 && (
               <div className="bg-slate-900 p-2 rounded mt-2 space-y-1">
                 {lead.kommentarer.map((k, i) => (
@@ -158,7 +187,6 @@ export default function Leads() {
               </div>
             )}
 
-            {/* Tilføj kommentar */}
             <div className="flex gap-2 mt-2">
               <input
                 type="text"
