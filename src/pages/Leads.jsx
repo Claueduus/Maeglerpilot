@@ -8,8 +8,10 @@ export default function Leads() {
     telefon: "",
     status: "Aktiv",
     note: "",
+    kommentarer: [],
   });
   const [editingIndex, setEditingIndex] = useState(null);
+  const [nyKommentar, setNyKommentar] = useState({});
 
   useEffect(() => {
     const gemt = localStorage.getItem("leads");
@@ -23,16 +25,28 @@ export default function Leads() {
   const tilføjEllerOpdater = () => {
     if (!form.navn || !form.email) return;
 
+    const nyLead = {
+      ...form,
+      kommentarer: form.kommentarer || [],
+    };
+
     const opdateret = [...leads];
     if (editingIndex !== null) {
-      opdateret[editingIndex] = form;
+      opdateret[editingIndex] = nyLead;
       setEditingIndex(null);
     } else {
-      opdateret.push(form);
+      opdateret.push(nyLead);
     }
 
     setLeads(opdateret);
-    setForm({ navn: "", email: "", telefon: "", status: "Aktiv", note: "" });
+    setForm({
+      navn: "",
+      email: "",
+      telefon: "",
+      status: "Aktiv",
+      note: "",
+      kommentarer: [],
+    });
   };
 
   const sletLead = (index) => {
@@ -47,10 +61,27 @@ export default function Leads() {
     setEditingIndex(index);
   };
 
+  const tilføjKommentar = (index) => {
+    if (!nyKommentar[index]) return;
+
+    const opdateretLeads = [...leads];
+    const kommentarObj = {
+      tekst: nyKommentar[index],
+      tidspunkt: new Date().toLocaleString(),
+    };
+    opdateretLeads[index].kommentarer = [
+      ...(opdateretLeads[index].kommentarer || []),
+      kommentarObj,
+    ];
+    setLeads(opdateretLeads);
+    setNyKommentar({ ...nyKommentar, [index]: "" });
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Leads – CRM-visning m. redigering</h2>
+      <h2 className="text-2xl font-semibold">Leads – Kommentarlog & CRM</h2>
 
+      {/* Formular */}
       <div className="grid md:grid-cols-2 gap-4">
         <input
           type="text"
@@ -97,11 +128,12 @@ export default function Leads() {
         {editingIndex !== null ? "💾 Gem ændringer" : "+ Opret lead"}
       </button>
 
+      {/* Liste */}
       <div className="grid gap-4 mt-6">
         {leads.map((lead, index) => (
           <div
             key={index}
-            className="bg-slate-800 p-4 rounded shadow space-y-1"
+            className="bg-slate-800 p-4 rounded shadow space-y-2"
           >
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-bold">{lead.navn}</h3>
@@ -112,8 +144,39 @@ export default function Leads() {
             <p className="text-sm">📧 {lead.email}</p>
             <p className="text-sm">📞 {lead.telefon}</p>
             {lead.note && (
-              <p className="text-sm text-gray-300 mt-2">📝 {lead.note}</p>
+              <p className="text-sm text-gray-300">📝 {lead.note}</p>
             )}
+
+            {/* Kommentarlog */}
+            {lead.kommentarer?.length > 0 && (
+              <div className="bg-slate-900 p-2 rounded mt-2 space-y-1">
+                {lead.kommentarer.map((k, i) => (
+                  <p key={i} className="text-sm text-gray-400">
+                    🗒️ {k.tidspunkt}: {k.tekst}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {/* Tilføj kommentar */}
+            <div className="flex gap-2 mt-2">
+              <input
+                type="text"
+                value={nyKommentar[index] || ""}
+                onChange={(e) =>
+                  setNyKommentar({ ...nyKommentar, [index]: e.target.value })
+                }
+                placeholder="Tilføj kommentar..."
+                className="bg-slate-700 p-1 rounded text-sm text-white flex-1"
+              />
+              <button
+                onClick={() => tilføjKommentar(index)}
+                className="text-sm bg-green-600 hover:bg-green-700 px-3 py-1 rounded"
+              >
+                Tilføj
+              </button>
+            </div>
+
             <div className="flex gap-4 mt-2">
               <button
                 onClick={() => redigerLead(index)}
