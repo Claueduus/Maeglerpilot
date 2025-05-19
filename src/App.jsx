@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
+import Boliger from "./components/Boliger";
 import Leads from "./pages/Leads";
 import Economy from "./pages/Economy";
 import TextGenerator from "./pages/TextGenerator";
@@ -42,6 +43,7 @@ export default function App() {
         <main className="p-6">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/boliger" element={<Boliger />} />
             <Route path="/leads" element={<Leads />} />
             <Route path="/economy" element={<Economy />} />
             <Route path="/textgenerator" element={<TextGenerator />} />
